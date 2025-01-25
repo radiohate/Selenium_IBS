@@ -63,10 +63,12 @@ public class ExampleScenarioTest {
         mainMenuItem.click();
         WebElement businessTripItem = mainMenuItem.findElement(By.xpath("./..//*[text()='Командировки']"));
         businessTripItem.click();
+        loading();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(@id, 'business-trip')]")));
         // Нажать на  Создать командировку
         WebElement createBusinessTripButton = driver.findElement(By.xpath("//a[@title='Создать командировку']"));
         createBusinessTripButton.click();
+        loading();
         //Проверить наличие на странице заголовка "Создать командировку"
         wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//h1[contains(text(),'Создать командировку')]")));
@@ -106,6 +108,7 @@ public class ExampleScenarioTest {
         WebElement saveAndCloseButtonElement = driver.findElement(
                 By.xpath("//button[contains(text(),'Сохранить и закрыть') and @type='submit']"));
         saveAndCloseButtonElement.click();
+        loading();
         // Раздел Командированные сотрудники не заполнять - проверим, что поле не заполнено
         String businessTripUserXpath = "//*[@class='control-label wrap']/*[text()='Командированные сотрудники']/../..";
         WebElement businessTripUsersValue = driver.findElement(
@@ -124,6 +127,13 @@ public class ExampleScenarioTest {
     }
 
     /**
+     * Дождаться исчезновения элемента загрузки
+     */
+    private void loading() {
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//*[@class='loader-mask shown']")));
+    }
+
+    /**
      * Пройти авторизацию по указанным логину и паролю
      *
      * @param login login пользователя
@@ -138,6 +148,8 @@ public class ExampleScenarioTest {
         WebElement submitButton = loginForm.findElement(By.xpath(".//button[@id='_submit']"));
         waitUtilElementToBeClickable(submitButton);
         submitButton.click();
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(
+                "//*[@class='progress progress-striped active']")));
     }
 
     /**
