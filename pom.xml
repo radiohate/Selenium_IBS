@@ -4,11 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-
     <groupId>ru.ibs.appline.course</groupId>
     <artifactId>selenium-script</artifactId>
     <version>1.0-SNAPSHOT</version>
-
 
     <properties>
         <!-- Encoding project -->
@@ -18,13 +16,12 @@
         <file.encoding>${encoding.type}</file.encoding>
 
         <!-- JDK version project -->
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.source>1.8</maven.compiler.source>
+        <java.version>1.8</java.version>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
     </properties>
 
-
     <dependencies>
-
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -49,5 +46,38 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!--    Плагин, который отвечает за компиляцию как тестов, так и всех Java-классов-->
+            <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${encoding.type}</encoding>
+                </configuration>
+            </plugin>
+            <!--Плагин, который отвечает за запуск тестов, сбор информации о состоянии тестов, которые были запущены-->
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <testFailureIgnore>true</testFailureIgnore>
+                    <includes>**/*Test*.java</includes>
+                    <argLine>
+                        -Xmx1024m
+                    </argLine>
+                    <systemProperties>
+                        <file.encoding>${encoding.type}</file.encoding>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

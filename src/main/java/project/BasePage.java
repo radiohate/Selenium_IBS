@@ -22,14 +22,14 @@ public class BasePage {
         initElements(driver, this);
     }
 
-    @FindBy(xpath = "//*[@class='loader-mask shown']")
-    private WebElement loaderSpinner;
+    @FindBy(xpath = "//body[not(contains(@class, 'loading'))]")
+    private WebElement loadingComplete;
 
     /**
      * Ожидание исчезновения спиннера
      */
     protected void loading() {
-        wait.until(invisibilityOf(loaderSpinner));
+        wait.until(visibilityOf(loadingComplete));
     }
 
     /**

@@ -8,6 +8,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.FileInputStream;
@@ -39,13 +40,14 @@ public class ExampleScenarioTest {
     @BeforeEach
     public void before() {
         System.setProperty("webdriver.chrome.driver", "src/test/resources/webdriver/chromedriver");
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--ignore-certificate-errors");
+        options.addArguments("--disable-web-security");
+        driver = new ChromeDriver(options);
         driver.manage().window().maximize();
         driver.manage().timeouts().pageLoadTimeout(15, TimeUnit.SECONDS);
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-
         wait = new WebDriverWait(driver, 15, 1000);
-
         String baseUrl = getProperty("url");
         driver.get(baseUrl);
     }
@@ -130,10 +132,10 @@ public class ExampleScenarioTest {
     }
 
     /**
-     * Дождаться исчезновения элемента загрузки
+     * Дождаться загрузки
      */
     private void loading() {
-        wait.until(invisibilityOfElementLocated(By.xpath("//*[@class='loader-mask shown']")));
+        wait.until(visibilityOfElementLocated(By.xpath("//body[not(contains(@class, 'loading'))]")));
     }
 
     /**
