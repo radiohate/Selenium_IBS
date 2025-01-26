@@ -1,12 +1,13 @@
 package ru.ibs.appline.tests;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.FileInputStream;
@@ -16,6 +17,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 public class ExampleScenarioTest {
 
@@ -31,21 +36,21 @@ public class ExampleScenarioTest {
     private WebDriver driver;
     private WebDriverWait wait;
 
-    @Before
+    @BeforeEach
     public void before() {
         System.setProperty("webdriver.chrome.driver", "src/test/resources/webdriver/chromedriver");
         driver = new ChromeDriver();
         driver.manage().window().maximize();
-        driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
+        driver.manage().timeouts().pageLoadTimeout(15, TimeUnit.SECONDS);
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
-        wait = new WebDriverWait(driver, 10, 1000);
+        wait = new WebDriverWait(driver, 15, 1000);
 
-        String baseUrl = "http://training.appline.ru/user/login";
+        String baseUrl = getProperty("url");
         driver.get(baseUrl);
     }
 
-    @After
+    @AfterEach
     public void after(){
         driver.quit();
     }
@@ -55,7 +60,7 @@ public class ExampleScenarioTest {
         // Пройти авторизацию
         login(getProperty(USER_KEY), getProperty(PASS_KEY));
         // Проверить наличие на странице заголовка Панель быстрого запуска
-        wait.until(ExpectedConditions.visibilityOfElementLocated(
+        wait.until(visibilityOfElementLocated(
                 By.xpath("//h1[contains(text(),'Панель быстрого запуска')]")));
         // В выплывающем окне раздела Расходы нажать на Командировки
         String mainMenuItemXpath = "//*[@id='main-menu']//*[@class='title' and text()='%s']/..";
@@ -64,13 +69,13 @@ public class ExampleScenarioTest {
         WebElement businessTripItem = mainMenuItem.findElement(By.xpath("./..//*[text()='Командировки']"));
         businessTripItem.click();
         loading();
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[contains(@id, 'business-trip')]")));
+        wait.until(visibilityOfElementLocated(By.xpath("//*[contains(@id, 'business-trip')]")));
         // Нажать на  Создать командировку
         WebElement createBusinessTripButton = driver.findElement(By.xpath("//a[@title='Создать командировку']"));
         createBusinessTripButton.click();
         loading();
         //Проверить наличие на странице заголовка "Создать командировку"
-        wait.until(ExpectedConditions.visibilityOfElementLocated(
+        wait.until(visibilityOfElementLocated(
                 By.xpath("//h1[contains(text(),'Создать командировку')]")));
         // Заполнить или выбрать поля:
         // Подразделение - выбрать Отдел внутренней разработки
@@ -113,24 +118,22 @@ public class ExampleScenarioTest {
         String businessTripUserXpath = "//*[@class='control-label wrap']/*[text()='Командированные сотрудники']/../..";
         WebElement businessTripUsersValue = driver.findElement(
                 By.xpath(businessTripUserXpath + "//*[contains(@id, 'crm_business_trip_users')]"));
-        Assert.assertEquals("Поле Командированные сотрудники не пустое",
-                "",
-                businessTripUsersValue.getText());
+        assertEquals("", businessTripUsersValue.getText(), "Поле Командированные сотрудники не пустое");
         // Проверить, что на странице появилось сообщение: "Список командируемых сотрудников не может быть пустым"
         WebElement businessTripUsersError = driver.findElement(
                 By.xpath(businessTripUserXpath + "//*[@class='validation-failed']"));
         waitUtilElementToBeVisible(businessTripUsersError);
         String expectedErrorMessage = "Список командируемых сотрудников не может быть пустым";
-        Assert.assertEquals("Проверка ошибки у поля не была пройдена",
-                expectedErrorMessage,
-                businessTripUsersError.getText());
+        assertEquals(expectedErrorMessage,
+                businessTripUsersError.getText(),
+                "Проверка ошибки у поля не была пройдена");
     }
 
     /**
      * Дождаться исчезновения элемента загрузки
      */
     private void loading() {
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//*[@class='loader-mask shown']")));
+        wait.until(invisibilityOfElementLocated(By.xpath("//*[@class='loader-mask shown']")));
     }
 
     /**
@@ -148,12 +151,11 @@ public class ExampleScenarioTest {
         WebElement submitButton = loginForm.findElement(By.xpath(".//button[@id='_submit']"));
         waitUtilElementToBeClickable(submitButton);
         submitButton.click();
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(
-                "//*[@class='progress progress-striped active']")));
+        wait.until(invisibilityOfElementLocated(By.xpath("//*[@class='progress progress-striped active']")));
     }
 
     /**
-     * Получить значение по ключу из файла app.properties
+     * Получить значение по ключу из файла environment.properties
      *
      * @param key ключ
      * @return значение
@@ -162,12 +164,12 @@ public class ExampleScenarioTest {
         String value = "";
         Properties properties = new Properties();
 
-        try (FileInputStream input = new FileInputStream("src/test/resources/app.properties")) {
+        try (FileInputStream input = new FileInputStream("src/test/resources/environment.properties")) {
             properties.load(input);
             value = properties.getProperty(key);
 
             if (value == null) {
-                String errorMsg = String.format("Значение по ключу %s не найдено в app.properties", key);
+                String errorMsg = String.format("Значение по ключу %s не найдено в environment.properties", key);
                 throw new IllegalArgumentException(errorMsg);
             }
         } catch (IOException e) {
@@ -203,10 +205,10 @@ public class ExampleScenarioTest {
         WebElement dayInCalendarElement = driver.findElement(By.xpath(dayInCalendarXpath));
         dayInCalendarElement.click();
         WebElement elementValue = element.findElement(By.xpath("./../span/input"));
-        boolean checkFlag = wait.until(ExpectedConditions.attributeContains(elementValue,
+        boolean checkFlag = wait.until(attributeContains(elementValue,
                 "value",
                 convertDateFormat(dateValue)));
-        Assert.assertTrue("Поле было заполнено некорректно", checkFlag);
+        assertTrue(checkFlag, "Поле было заполнено некорректно");
     }
 
     /**
@@ -233,7 +235,7 @@ public class ExampleScenarioTest {
      * @param element - веб элемент до которого нужно проскролить
      */
     private void waitUtilElementToBeClickable(WebElement element) {
-        wait.until(ExpectedConditions.elementToBeClickable(element));
+        wait.until(elementToBeClickable(element));
     }
 
     /**
@@ -242,7 +244,7 @@ public class ExampleScenarioTest {
      * @param element веб элемент который мы ожидаем что будет виден на странице
      */
     private void waitUtilElementToBeVisible(WebElement element) {
-        wait.until(ExpectedConditions.visibilityOf(element));
+        wait.until(visibilityOf(element));
     }
 
     /**
@@ -257,7 +259,7 @@ public class ExampleScenarioTest {
             // Если не находится, кликаем по нему
             checkBoxElement.click();
         }
-        Assert.assertEquals("Поле было заполнено некорректно", checkBoxElement.isSelected(), targetState);
+        assertEquals(checkBoxElement.isSelected(), targetState, "Поле было заполнено некорректно");
     }
 
     /**
@@ -274,8 +276,8 @@ public class ExampleScenarioTest {
         scrollToElementJs(targetValueElement);
         waitUtilElementToBeClickable(targetValueElement);
         targetValueElement.click();
-        boolean checkFlag = wait.until(ExpectedConditions.textToBePresentInElement(element, targetValue));
-        Assert.assertTrue("Поле было заполнено некорректно", checkFlag);
+        boolean checkFlag = wait.until(textToBePresentInElement(element, targetValue));
+        assertTrue(checkFlag, "Поле было заполнено некорректно");
     }
 
     /**
@@ -290,7 +292,7 @@ public class ExampleScenarioTest {
         element.click();
         element.clear();
         element.sendKeys(value);
-        boolean checkFlag = wait.until(ExpectedConditions.attributeContains(element, "value", value));
-        Assert.assertTrue("Поле было заполнено некорректно", checkFlag);
+        boolean checkFlag = wait.until(attributeContains(element, "value", value));
+        assertTrue(checkFlag, "Поле было заполнено некорректно");
     }
 }
